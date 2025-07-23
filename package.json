@@ -1,0 +1,28 @@
+{
+  "name": "moneta",
+  "version": "1.0.0",
+  "description": "This is an online version of the budgeting app of the same name I wrote years ago in Java. I've decided  to re-write it in Node so that I can access it from different devices and not always have to access the  famiy budgeting information from a desktop or laptop computer.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidf628/moneta.git"
+  },
+  "keywords": [],
+  "author": "David Flenner",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/davidf628/moneta/issues"
+  },
+  "homepage": "https://github.com/davidf628/moneta#readme",
+  "dependencies": {
+    "dotenv": "^17.2.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "mariadb": "^3.4.5"
+  }
+}

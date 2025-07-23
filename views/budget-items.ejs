@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Budget Items</title>
+</head>
+<body>
+  <h1>Budget Items</h1>
+
+  <% if (budget_items.length === 0) { %>
+    <p>No budget items found.</p>
+  <% } else { %>
+    <table border="1">
+      <tr>
+        <th>Name</th>
+        <th>Budget</th>
+      </tr>
+      <% budget_items.forEach(budget_item => { %>
+        <tr>
+          <td><%= budget_item.name %></td>
+          <td><%= budget_item.amount %></td>
+        </tr>
+      <% }) %>
+    </table>
+  <% } %>
+
+</body>
+</html>
