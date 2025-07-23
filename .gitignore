@@ -1,3 +1,6 @@
+# Remove the OSX folder description files
+.DS_Store
+
 # Logs
 logs
 *.log
