@@ -1,5 +1,5 @@
 import express from 'express';
-import { pool } from './db.js';
+import { load_preferences, pool } from './src/db.js';
 import bodyParser from 'body-parser';
 
 const app = express();
@@ -17,6 +17,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.get('/', async (req, res) => {
     let conn;
     try {
+        // load user preferences
+        let user = 'davidflenner';
+        let prefs = await load_preferences(user);
+        if (prefs == null) {
+            res.status(500).send(`Could not load preferences for user ${user}`);
+        }
+        // load current budget items
         conn = await pool.getConnection();
         const rows = await conn.query("SELECT * FROM budgetitems");
         res.render('budget-items', { budget_items: rows });

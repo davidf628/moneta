@@ -6,7 +6,14 @@ famiy budgeting information from a desktop or laptop computer.
 The main database will be a **mariadb** instead of a simple text-file, and I will add some charting and
 advanced aggregation features as the program gets built out.
 
-The main database is named **moneta_db** and this contains three tables, one for **accounts**, another for **budgetitems** and one more for **transactions**. The structure of each database is as follows:
+The main database is named **moneta_db** and this contains three tables, one for saved **preferences**, one for **accounts**, another for **budgetitems** and one more for **transactions**. The structure of each database is as follows:
+
+#### preferences
+
+* **user** - the name of the user associated with a set of preferences
+* **current_month** - the last month that was loaded into the editor
+* **current_year** - the last year that was loaded into the editor
+* **current_account** - the last account that was loaded into the editor
 
 #### accounts:
 
