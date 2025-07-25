@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fixed Top Bar Example</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      padding-top: 70px; /* Prevent content from hiding under the navbar */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Fixed Top Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
+    <div class="container-fluid">
+      <!-- Left side: Branding -->
+      <a class="navbar-brand fw-bold" href="#">MyApp</a>
+
+      <!-- Right side -->
+      <div class="d-flex align-items-center gap-3">
+
+        <!-- Username Display -->
+        <span class="text-light">
+          <i class="bi bi-person-circle"></i> Logged in as <strong>JohnDoe</strong>
+        </span>
+
+        <!-- Account Selector (Dropdown + Input) -->
+        <div class="dropdown">
+          <button class="btn btn-outline-light dropdown-toggle" type="button" id="accountMenu" data-bs-toggle="dropdown" aria-expanded="false">
+            Current Account: <span id="currentAccount">Main</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end p-3" aria-labelledby="accountMenu" style="min-width: 250px;">
+            <li class="mb-2">Switch Account:</li>
+            <li>
+              <select class="form-select mb-2" id="accountSelect">
+                <option>Main</option>
+                <option>Work</option>
+                <option>Personal</option>
+              </select>
+            </li>
+            <li class="mb-2 text-center">OR</li>
+            <li>
+              <input type="text" class="form-control" id="newAccountName" placeholder="New account name">
+            </li>
+            <li class="mt-2 text-center">
+              <button class="btn btn-primary btn-sm" onclick="changeAccount()">Apply</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ✅ Page Content -->
+  <div class="container mt-4">
+    <h1>Welcome to Your Dashboard</h1>
+    <p>Scroll down and notice the top bar stays in place.</p>
+    <div style="height: 1500px;">(Lots of content here...)</div>
+  </div>
+
+  <!-- Bootstrap JS + Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  <script>
+    function changeAccount() {
+      const selectVal = document.getElementById('accountSelect').value;
+      const inputVal = document.getElementById('newAccountName').value.trim();
+      const accountName = inputVal || selectVal; // use input if filled, otherwise dropdown
+      document.getElementById('currentAccount').textContent = accountName;
+    }
+  </script>
+
+</body>
+</html>

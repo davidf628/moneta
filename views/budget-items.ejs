@@ -1,5 +1,7 @@
 <%- include('header') %>
 
+  <div class="container-fluid">
+
   <h1>Budget Items</h1>
 
   <% if (budget_items.length === 0) { %>
@@ -25,5 +27,6 @@
 
 <form action="/new-budget-item">
     <button type="submit" class="btn btn-primary float-end">Add Budget Item</button>
-
+</form>
+</div>
 <%- include('footer') %>
