@@ -1,11 +1,17 @@
 import express from 'express';
 import { pool } from './db.js';
+import bodyParser from 'body-parser';
 
 const app = express();
 const PORT = 8600;
 
 // EJS as the template engine
 app.set('view engine', 'ejs');
+
+// populates a variable called req.body if the user
+// is submitting a form. (The extended option is 
+// required)
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // Route: fetch users and render template
 app.get('/', async (req, res) => {
@@ -20,6 +26,26 @@ app.get('/', async (req, res) => {
     } finally {
         if (conn) conn.release();
     }
+});
+
+// A request to create a new budget item has been made, take
+// user to that page
+app.get('/new-budget-item', (req, res) => {
+    res.render('new-budget-item', {});
+});
+
+// after the user enters the new budget item data and POSTS
+// it to the new-budget-item route, the server grabs this data
+// and sends it to the database
+
+app.post('/new-budget-item', (req, res) => {
+    // input values: req.body['budget-category-title']
+    //   and req.body['budget-amount']
+    console.log(req.body);
+    console.log(`${req.body.title}, ${req.body.amount}`);
+
+    // take user back to homepage
+    res.redirect('/');
 });
 
 app.listen(PORT, () => {
