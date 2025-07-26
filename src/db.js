@@ -13,15 +13,17 @@ export const pool = mariadb.createPool({
   connectionLimit: 5
 });
 
+// loads the saved preferences for a user looked up by username.
+// the preferences are returned as an object that looks like:
+// { }
+
 export async function load_preferences(user) {
     let conn;
     let payload;
     try {
         conn = await pool.getConnection();
-        // rows is de-structured to eliminate extra metadata returned by mariadb when
-        // a query is executed
-        const [rows] = await conn.query('SELECT * FROM preferences WHERE user = ?', [user]);
-        payload = rows;
+        const prefs = await conn.query('SELECT * FROM preferences WHERE user = ?', [user]);
+        payload = prefs[0]; // there should be only on item returned since usernames are unique
     } catch (err) {
         console.error(err);
         payload = null;
@@ -33,14 +35,14 @@ export async function load_preferences(user) {
 
 
 // Gets the names of the different accounts available within the database
+// along with their associated id. This is returned as an array of objects
+// that looks like: [ { name: 'acctname', id: ## }]
 export async function get_accounts() {
     let conn, payload = [];
     try {
         conn = await pool.getConnection();
-        let accounts = await conn.query('SELECT name FROM accounts');
-        for (let account of accounts) {
-            payload.push(account.name);
-        }
+        let accounts = await conn.query('SELECT * FROM accounts');
+        payload = accounts;
     } catch (err) {
         console.error(err);
         payload = null;
@@ -53,15 +55,15 @@ export async function get_accounts() {
 // Looks into the budgetitems database and the transactions database to see
 // what years are available and combines those into a single list. Finally,
 // this list gets sorted and returned back to the main program
-export async function get_available_years() {
+export async function get_available_years(account) {
     let conn, payload = [];
     try {
         conn = await pool.getConnection();
-        let years = await conn.query('SELECT DISTINCT year FROM budgetitems');
+        let years = await conn.query('SELECT DISTINCT year FROM budgetitems WHERE account = ?', [account]);
         for (let year of years) {
             payload.push(year.year);
         }
-        years = await conn.query('SELECT DISTINCT year FROM transactions');
+        years = await conn.query('SELECT DISTINCT year FROM transactions WHERE account = ?', [account]);
         for (let year of years) {
             if (!year.year in payload) {
                 payload.push(year.year);
@@ -82,15 +84,15 @@ export async function get_available_years() {
 // year in the database. This looks into both the budgetitems and transactions
 // database in case there are different values (though there shouldn't be.) 
 // The return is sorted by calendar appearance
-export async function get_avaiable_months(year) {
+export async function get_avaiable_months(account, year) {
     let conn, payload = [];
     try {
         conn = await pool.getConnection();
-        let months = await conn.query('SELECT DISTINCT month FROM budgetitems WHERE year = ?', [year]);
+        let months = await conn.query('SELECT DISTINCT month FROM budgetitems WHERE account = ? AND year = ?', [account, year]);
         for (let month of months) {
             payload.push(month.month);
         }
-        months = await conn.query('SELECT DISTINCT month FROM transactions WHERE year = ?', [year]);
+        months = await conn.query('SELECT DISTINCT month FROM transactions WHERE account = ? AND year = ?', [account, year]);
         for (let month of months) {
             if (!month.month in months) {
                 payload.push(month.month);

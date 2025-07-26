@@ -11,14 +11,14 @@
       <thead>
         <tr>
           <th>Name</th>
-          <th>Budget</th>
+          <th style="text-align:right">Budget</th>
         </tr>
       </thead>
       <tbody class="table-group-divider">
       <% budget_items.forEach(budget_item => { %>
         <tr>
           <td><%= budget_item.name %></td>
-          <td><%= budget_item.amount %></td>
+          <td style="text-align: right"><%= budget_item.amount.toLocaleString('us-US', { style: 'currency', currency: 'USD' }) %></td>
         </tr>
       <% }) %>
       </tbody>

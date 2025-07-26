@@ -1,5 +1,6 @@
 import express from 'express';
 import { get_accounts, get_avaiable_months, get_available_years, load_preferences, pool } from './src/db.js';
+import { get_property_list, lookup_by_id } from './src/misc.js';
 import bodyParser from 'body-parser';
 
 const app = express();
@@ -26,21 +27,20 @@ app.get('/', async (req, res) => {
 
         // load all available accounts in the database
         let accounts = await get_accounts();
-        console.log(accounts);
         if (accounts == null) {
             res.status(500).send(`Could not load any accounts from the database`);
         }
 
         // load all years available in the database
-        let years = await get_available_years();
+        let years = await get_available_years(prefs.current_account);
         if (years == null) {
-            res.status(500).send(`Could not load any years from the database`);
+            res.status(500).send(`Could not load any yeas for the account ${prefs.current_account}`);
         }
 
         // load all months avaialbe for the current year
-        let months = await get_avaiable_months(prefs.current_year);
+        let months = await get_avaiable_months(prefs.current_account, prefs.current_year);
         if (months == null) {
-            res.status(500).send(`Could not find any months for year ${prefs.current_year}`);
+            res.status(500).send(`Could not find any months for year ${prefs.current_year} in the account ${prefs.current_account}`);
         }
 
         // load current budget items
@@ -49,8 +49,11 @@ app.get('/', async (req, res) => {
 
         let payload = {
             budget_items: rows,
-            username: user,
-            accounts: accounts
+            prefs: prefs,
+            current_account: lookup_by_id(accounts, prefs.current_account, 'name'),
+            accounts: get_property_list(accounts, 'name'),
+            months: months,
+            years: years
         }
 
         res.render('budget-items', payload);

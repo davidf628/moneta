@@ -24,12 +24,12 @@
 
                 <!-- Username Display -->
                 <span class="text-light">
-                    <i class="bi bi-person-circle"></i> Logged in as <strong><%= username %></strong>
+                    <i class="bi bi-person-circle"></i> Logged in as <strong><%= prefs.user %></strong>
                 </span>
 
                 <!-- Account Selector -->
                 <div class="dropdown">
-                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">Account</button>
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><%= current_account %></button>
                     <ul class="dropdown-menu">
                         <% accounts.forEach((account) => { %>
                             <li><a class="dropdown-item" href="#"><%= account %></a></li>
@@ -39,21 +39,21 @@
             
                 <!-- Month Selector -->
                 <div class="dropdown">
-                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">Month</button>
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><%= prefs.current_month %> </button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Link 1</a></li>
-                        <li><a class="dropdown-item" href="#">Link 2</a></li>
-                        <li><a class="dropdown-item" href="#">Link 3</a></li>
+                        <% months.forEach((month) => { %>
+                            <li><a class="dropdown-item" href="#"><%= month %></a></li>
+                        <% }); %>
                     </ul>
                 </div> 
 
                 <!-- Year Selector -->
                 <div class="dropdown">
-                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">Year</button>
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><%= prefs.current_year %> </button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Link 1</a></li>
-                        <li><a class="dropdown-item" href="#">Link 2</a></li>
-                        <li><a class="dropdown-item" href="#">Link 3</a></li>
+                        <% years.forEach((year) => { %>
+                            <li><a class="dropdown-item" href="#"><%= year %></a></li>
+                        <% }); %>
                     </ul>
                 </div> 
                 
