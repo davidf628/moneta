@@ -3,6 +3,10 @@ This is an online version of the budgeting app of the same name I wrote years ag
 to re-write it in Node so that I can access it from different devices and not always have to access the 
 famiy budgeting information from a desktop or laptop computer.
 
+To begin this program run the command: `npm start`
+
+Then point your browser to: `http://localhost:8600/`
+
 The main database will be a **mariadb** instead of a simple text-file, and I will add some charting and
 advanced aggregation features as the program gets built out.
 

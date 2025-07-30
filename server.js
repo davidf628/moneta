@@ -45,7 +45,8 @@ app.get('/', async (req, res) => {
 
         // load current budget items
         conn = await pool.getConnection();
-        const rows = await conn.query("SELECT * FROM budgetitems");
+        const rows = await conn.query("SELECT * FROM budgetitems WHERE account = ? AND month = ? AND year = ?", 
+            [prefs.current_account, prefs.current_month, prefs.current_year]);
 
         let payload = {
             budget_items: rows,
