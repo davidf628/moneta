@@ -25,11 +25,26 @@ export async function load_preferences(user) {
         const prefs = await conn.query('SELECT * FROM preferences WHERE user = ?', [user]);
         payload = prefs[0]; // there should be only on item returned since usernames are unique
     } catch (err) {
-        console.error(err);
+        console.error(`{err}: Error while loading user preferences`);
         payload = null;
     } finally {
         if (conn) conn.release();
         return payload;
+    }
+}
+
+// writes any preference changes to the database for use later
+export async function save_preferences(user, prefs) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const sql = 'UPDATE preferences SET current_month = ?, current_year = ?, current_account = ? WHERE user = ?';
+        const params = [prefs.current_month, prefs.current_year, prefs.current_account, user];
+        await conn.query(sql, params);
+    } catch (err) {
+        console.error(`${err}: Error while saving user preferences`);
+    } finally {
+        if (conn) conn.release();
     }
 }
 

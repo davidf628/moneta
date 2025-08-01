@@ -1,6 +1,12 @@
 import express from 'express';
-import { get_accounts, get_avaiable_months, get_available_years, load_preferences, pool } from './src/db.js';
-import { get_property_list, lookup_by_id } from './src/misc.js';
+import { get_accounts, 
+         get_avaiable_months, 
+         get_available_years, 
+         load_preferences, 
+         save_preferences, 
+         pool 
+       } from './src/db.js';
+import { get_property_list, lookup_by_id, lookup_id_by } from './src/misc.js';
 import bodyParser from 'body-parser';
 
 const app = express();
@@ -18,11 +24,32 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.get('/', async (req, res) => {
     let conn;
     try {
+
         // load user preferences
         let user = 'davidflenner';
         let prefs = await load_preferences(user);
         if (prefs == null) {
             res.status(500).send(`Could not load preferences for user ${user}`);
+        }
+
+        if (req.query.month) {
+            // TODO: validate that req.query.month is a valid Month
+            prefs.current_month = req.query.month;
+            await save_preferences(user, prefs);
+        }
+
+        if (req.query.account) {
+            // TODO: validate that req.query.account is a valid Account
+            let accounts = await get_accounts();
+            let account_id = lookup_id_by(accounts, req.query.account, 'name');
+            prefs.current_account = account_id;
+            await save_preferences(user, prefs);
+        }
+
+        if (req.query.year) {
+            // TODO: validate that req.query.year is a valid Year
+            prefs.current_year = req.query.year;
+            await save_preferences(user, prefs);
         }
 
         // load all available accounts in the database
@@ -34,7 +61,7 @@ app.get('/', async (req, res) => {
         // load all years available in the database
         let years = await get_available_years(prefs.current_account);
         if (years == null) {
-            res.status(500).send(`Could not load any yeas for the account ${prefs.current_account}`);
+            res.status(500).send(`Could not load any years for the account ${prefs.current_account}`);
         }
 
         // load all months avaialbe for the current year

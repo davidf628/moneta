@@ -35,3 +35,19 @@ export function lookup_by_id (object_list, id, property) {
     });
     return value;
 }
+
+
+// looks through a list of objects that looks like: [ { name: ..., id: ...}]
+// and you supply the property to look through (name, for instance)
+// and the value you're looking for ('dave', perhaps) and once that
+// value is found, the id associated with it is returned
+
+export function lookup_id_by (object_list, to_find, property) {
+    let id = null;
+    object_list.forEach( (obj) => {
+        if (obj[property] == to_find) {
+            id = obj.id;
+        }
+    });
+    return id;
+}

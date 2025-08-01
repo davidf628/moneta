@@ -32,7 +32,7 @@
                     <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><%= current_account %></button>
                     <ul class="dropdown-menu">
                         <% accounts.forEach((account) => { %>
-                            <li><a class="dropdown-item" href="#"><%= account %></a></li>
+                            <li><a class="dropdown-item" href="?account=<%= account %>"><%= account %></a></li>
                         <% }); %>
                     </ul>
                 </div> 
@@ -42,7 +42,7 @@
                     <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><%= prefs.current_month %> </button>
                     <ul class="dropdown-menu">
                         <% months.forEach((month) => { %>
-                            <li><a class="dropdown-item" href="#"><%= month %></a></li>
+                            <li><a class="dropdown-item" href="?month=<%= month %>"><%= month %></a></li>
                         <% }); %>
                     </ul>
                 </div> 
@@ -52,7 +52,7 @@
                     <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><%= prefs.current_year %> </button>
                     <ul class="dropdown-menu">
                         <% years.forEach((year) => { %>
-                            <li><a class="dropdown-item" href="#"><%= year %></a></li>
+                            <li><a class="dropdown-item" href="?year=<%= year %>"><%= year %></a></li>
                         <% }); %>
                     </ul>
                 </div> 
