@@ -13,25 +13,32 @@
           <th></th>
           <th>Name</th>
           <th style="text-align:center">Budget</th>
+          <th style="text-align:center">Actions</th>
         </tr>
       </thead>
       <tbody class="table-group-divider">
       <% budget_items.forEach(budget_item => { %>
         <% if (!["void","Starting Balance","Income"].includes(budget_item.name)) { %>
-        <tr>
-          <% if (budget_item.name != "") { %>
-            <% let name = `cb_budgetitem_${budget_item.orderbyte}` %>
-            <td><input type="checkbox" name="<%= name %>"></td>
-            <td><%= budget_item.name %></td>
-          <td style="text-align: right"><%= budget_item.amount.toLocaleString('us-US', { style: 'currency', currency: 'USD' }) %></td>
-          <% } else { %>
-            <td><p type="hidden"></p></td>
-            <td><%= budget_item.name %></td>
-            <td><p type="hidden"></p></td>
-          <% } %>
-        </tr>
+            <tr>
+            <% if (budget_item.name != "") { %>
+                <% let name = `cb_budgetitem_${budget_item.orderbyte}` %>
+                <td><input type="checkbox" name="<%= name %>"></td>
+                <td><%= budget_item.name %></td>
+                <td style="text-align: right"><%= budget_item.amount.toLocaleString('us-US', { style: 'currency', currency: 'USD' }) %></td>
+                <td style="text-align: center">
+                    <button class="btn btn-sm delete-btn" title="Delete" dbid="<%=budget_item.id%>">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                </td>
+            <% } else { %>
+                <td><p type="hidden"></p></td>
+                <td><%= budget_item.name %></td>
+                <td><p type="hidden"></p></td>
+                <td><p type="hidden"></p></td>
+            <% } %>
+            </tr>
         <% } %>
-      <% }) %>
+        <% }) %>
       </tbody>
     </table>
   <% } %>
@@ -40,4 +47,25 @@
     <button type="submit" class="btn btn-primary float-end">Add Budget Item</button>
 </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const row = e.target.closest('tr');
+                const id = btn.getAttribute('dbid');
+
+                if (confirm('Are you sure you want to delete this row?')) {
+                    const res = await fetch(`/delete/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        row.remove(); // Remove row from the DOM
+                    } else {
+                        alert('Error deleting row');
+                    }
+                }
+            });
+        });
+    });
+</script>
+
 <%- include('footer') %>

@@ -100,6 +100,22 @@ app.get('/new-budget-item', (req, res) => {
     res.render('new-budget-item', {});
 });
 
+// DELETE request handler
+app.delete('/delete/:id', async (req, res) => {
+    const { id } = req.params;
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        await conn.query('DELETE FROM budgetitems WHERE id = ?', [id]);
+        res.sendStatus(200);
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+    } finally {
+        if (conn) conn.release();
+    }
+});
+
 // after the user enters the new budget item data and POSTS
 // it to the new-budget-item route, the server grabs this data
 // and sends it to the database
