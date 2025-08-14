@@ -10,16 +10,27 @@
     <table class="table table-striped table-hover table-sm table-bordered">
       <thead>
         <tr>
+          <th></th>
           <th>Name</th>
-          <th style="text-align:right">Budget</th>
+          <th style="text-align:center">Budget</th>
         </tr>
       </thead>
       <tbody class="table-group-divider">
       <% budget_items.forEach(budget_item => { %>
+        <% if (!["void","Starting Balance","Income"].includes(budget_item.name)) { %>
         <tr>
-          <td><%= budget_item.name %></td>
+          <% if (budget_item.name != "") { %>
+            <% let name = `cb_budgetitem_${budget_item.orderbyte}` %>
+            <td><input type="checkbox" name="<%= name %>"></td>
+            <td><%= budget_item.name %></td>
           <td style="text-align: right"><%= budget_item.amount.toLocaleString('us-US', { style: 'currency', currency: 'USD' }) %></td>
+          <% } else { %>
+            <td><p type="hidden"></p></td>
+            <td><%= budget_item.name %></td>
+            <td><p type="hidden"></p></td>
+          <% } %>
         </tr>
+        <% } %>
       <% }) %>
       </tbody>
     </table>
