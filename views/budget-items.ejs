@@ -18,7 +18,7 @@
       </thead>
       <tbody class="table-group-divider">
       <% budget_items.forEach(budget_item => { %>
-        <% if (!["void","Starting Balance","Income"].includes(budget_item.name)) { %>
+        <% if (budget_item.orderbyte != -1) { %>
             <tr>
             <% if (budget_item.name != "") { %>
                 <% let name = `cb_budgetitem_${budget_item.orderbyte}` %>
@@ -26,9 +26,31 @@
                 <td><%= budget_item.name %></td>
                 <td style="text-align: right"><%= budget_item.amount.toLocaleString('us-US', { style: 'currency', currency: 'USD' }) %></td>
                 <td style="text-align: center">
-                    <button class="btn btn-sm delete-btn" title="Delete" dbid="<%=budget_item.id%>">
-                        <i class="bi bi-x-circle-fill"></i>
-                    </button>
+   
+            
+                        <!-- Move Up -->
+                        <button class="btn btn-sm btn-outline-secondary moveup-btn" title="Move up" dbid="<%=budget_item.id%>">
+                        <i class="bi bi-caret-up"></i>
+                        </button>
+
+                        <!-- Move Down -->
+                        <button class="btn btn-sm btn-outline-secondary" title="Move down">
+                        <i class="bi bi-caret-down"></i>
+                        </button>
+
+                        <!-- Add Above -->
+                        <button class="btn btn-sm btn-outline-primary" title="Insert above">
+                            <i class="bi bi-chevron-double-up"></i>
+                        </button>
+
+                        <!-- Add Below -->
+                        <button class="btn btn-sm btn-outline-primary" title="Insert below">
+                            <i class="bi bi-chevron-double-down"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-btn" title="Delete" dbid="<%=budget_item.id%>">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+
                 </td>
             <% } else { %>
                 <td><p type="hidden"></p></td>
@@ -49,6 +71,8 @@
 </div>
 
 <script>
+
+    // Event listener for delete buttons
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
@@ -62,6 +86,25 @@
                     } else {
                         alert('Error deleting row');
                     }
+                }
+            });
+        });
+    });
+
+    // Event listener for Move Up buttons
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.moveup-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const row = e.target.closest('tr');
+                const id = btn.getAttribute('dbid');
+                const res = await fetch(`/moveup-budgetitem/${id}`, { method: 'POST' });
+                if (res.ok) {
+                    const prevRow = row.previousElementSibling; // find the one above
+                    if (prevRow) {
+                        row.parentNode.insertBefore(row, prevRow); // insert this row before the one above
+                    }
+                } else {
+                    alert('Error moving row');
                 }
             });
         });

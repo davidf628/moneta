@@ -73,7 +73,7 @@ app.get('/', async (req, res) => {
         // load current budget items
         // each item will have: id, name, amount, orderbyte, increment, year, month, account
         conn = await pool.getConnection();
-        const rows = await conn.query("SELECT * FROM budgetitems WHERE account = ? AND month = ? AND year = ?", 
+        const rows = await conn.query("SELECT * FROM budgetitems WHERE account = ? AND month = ? AND year = ? ORDER BY orderbyte", 
             [prefs.current_account, prefs.current_month, prefs.current_year]);
 
         let payload = {
@@ -107,6 +107,70 @@ app.delete('/delete/:id', async (req, res) => {
     try {
         conn = await pool.getConnection();
         await conn.query('DELETE FROM budgetitems WHERE id = ?', [id]);
+        res.sendStatus(200);
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+    } finally {
+        if (conn) conn.release();
+    }
+});
+
+function print_rows(rows) {
+    let objlist = [];
+    for(let row of rows) {
+        let obj = {};
+        obj[`${row.name}`] = row.orderbyte ;
+        objlist.push(obj);
+    }
+    console.log(objlist);
+}
+
+// MoveUp (budgetitem) request handler
+app.post('/moveup-budgetitem/:id', async (req, res) => {
+    const { id } = req.params;
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        // load user preferences
+        let user = 'davidflenner';
+        let prefs = await load_preferences(user);
+        // get all budgetitems for current account, month, year
+        let rows = await conn.query("SELECT * FROM budgetitems WHERE account = ? AND month = ? AND year = ? ORDER BY orderbyte", 
+            [prefs.current_account, prefs.current_month, prefs.current_year]);
+        // reduce the orderbyte by 1 if possible
+        let moverow = rows.find(row => row.id == id);
+        let neworderbyte = moverow.orderbyte - 1;
+        // for all items with orderbyte < moved item => leave alone
+        let min_orderbyte = Math.min(...rows.map(row => row.orderbyte).filter(x => x >= 0));
+        let max_orderbyte = Math.max(...rows.map(row => row.orderbyte).filter(x => x >= 0));
+        
+        // for all items with orderbyte > moved item => increase by one
+        if (moverow.orderbyte > min_orderbyte) {
+            rows.filter(row => row.orderbyte >= neworderbyte).forEach(row => row.orderbyte += 1);
+            moverow.orderbyte = neworderbyte;
+        }
+        // re-sort all the rows by the orderbyte
+        rows.sort((a, b) => a.orderbyte - b.orderbyte);
+
+        // make sure all orderbytes are well-behaved
+        let counter = 0;
+        for (let i = 0; i < rows.length; i++) {
+            let row = rows[i];
+            if (row.orderbyte >= 0) {  i;
+                row.orderbyte = counter;
+                counter++;
+            }
+        }
+        const sql = `
+            UPDATE budgetitems
+            SET orderbyte = 
+                CASE id
+                    ${rows.map(u => `WHEN ${u.id} THEN ${u.orderbyte}`).join(' ')}
+                END
+            WHERE id IN (${rows.map(u => u.id).join(', ')})
+        `;
+        await conn.query(sql);
         res.sendStatus(200);
     } catch (err) {
         console.error(err);
