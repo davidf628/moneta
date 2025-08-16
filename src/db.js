@@ -122,3 +122,115 @@ export async function get_avaiable_months(account, year) {
         return payload;
     }
 }
+
+export async function shift_db_item_up(table, id, user) {
+
+    const allowedTables = ['budgetitems', 'transactions'];
+    if (!allowedTables.includes(table)) {
+        throw new Error(`Table: ${table} is not a valid table name`);
+    }
+
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        let prefs = await load_preferences(user);
+        
+        // get all budgetitems for current account, month, year
+        let sql = `SELECT * FROM ${table} WHERE account = ? AND month = ? AND year = ? ORDER BY orderbyte`;
+        let rows = await conn.query(sql, [prefs.current_account, prefs.current_month, prefs.current_year]);
+        
+        let moverow = rows.find(row => row.id == id);
+        let neworderbyte = moverow.orderbyte - 1;
+        let min_orderbyte = Math.min(...rows.map(row => row.orderbyte).filter(x => x >= 0));
+
+        // for all items with orderbyte < moved item => leave alone
+        // for all items with orderbyte > moved item => increase by one
+        if (moverow.orderbyte > min_orderbyte) {
+            rows.filter(row => row.orderbyte >= neworderbyte).forEach(row => row.orderbyte += 1);
+            moverow.orderbyte = neworderbyte;
+        }
+
+        // re-sort all the rows by the orderbyte
+        rows.sort((a, b) => a.orderbyte - b.orderbyte);
+
+        // make sure there are no orderbyte gaps and starting value is 0
+        let counter = 0;
+        for (let i = 0; i < rows.length; i++) {
+            let row = rows[i];
+            if (row.orderbyte >= 0) {  i;
+                row.orderbyte = counter;
+                counter++;
+            }
+        }
+        sql = `
+            UPDATE ${table}
+            SET orderbyte = 
+                CASE id
+                    ${rows.map(u => `WHEN ${u.id} THEN ${u.orderbyte}`).join(' ')}
+                END
+            WHERE id IN (${rows.map(u => u.id).join(', ')})
+        `;
+        await conn.query(sql);
+    } catch (err) {
+        console.error(err);
+    } finally {
+        if (conn) conn.release();
+    }
+};
+
+export async function shift_db_item_down(table, id, user) {
+    let conn;
+
+    const allowedTables = ['budgetitems', 'transactions'];
+    if (!allowedTables.includes(table)) {
+        throw new Error(`Table: ${table} is not a valid table name`);
+    }
+
+    try {
+        conn = await pool.getConnection();
+        let prefs = await load_preferences(user);
+        
+        // get all budgetitems for current account, month, year
+        let sql = `SELECT * FROM ${table} WHERE account = ? AND month = ? AND year = ? ORDER BY orderbyte`;
+        let rows = await conn.query(sql, [prefs.current_account, prefs.current_month, prefs.current_year]);
+        
+        // ignore all the the hidden items:
+        rows = rows.filter(row => row.orderbyte >= 0);
+
+        let moverow = rows.find(row => row.id == id);
+        let moverowindex = rows.findIndex(row => row.id == id);
+        if (moverowindex < rows.length - 1) {
+            let nextrow = rows[moverowindex + 1];
+            // swap the orderbytes of the moverow and the nextrow
+            let saved_orderbyte = moverow.orderbyte;
+            moverow.orderbyte = nextrow.orderbyte;
+            nextrow.orderbyte = saved_orderbyte; 
+       
+            // re-sort all the rows by the orderbyte
+            rows.sort((a, b) => a.orderbyte - b.orderbyte);
+
+            // make sure there are no orderbyte gaps and starting value is 0
+            let counter = 0;
+            for (let i = 0; i < rows.length; i++) {
+                let row = rows[i];
+                if (row.orderbyte >= 0) {  i;
+                    row.orderbyte = counter;
+                    counter++;
+                }
+            }
+            const sql = `
+                UPDATE ${table}
+                SET orderbyte = 
+                    CASE id
+                        ${rows.map(u => `WHEN ${u.id} THEN ${u.orderbyte}`).join(' ')}
+                    END
+                WHERE id IN (${rows.map(u => u.id).join(', ')})
+            `;
+            await conn.query(sql);
+        }
+    } catch (err) {
+        console.error(err);
+    } finally {
+        if (conn) conn.release();
+    }
+};

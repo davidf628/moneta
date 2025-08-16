@@ -34,7 +34,7 @@
                         </button>
 
                         <!-- Move Down -->
-                        <button class="btn btn-sm btn-outline-secondary" title="Move down">
+                        <button class="btn btn-sm btn-outline-secondary movedown-btn" title="Move down" dbid="<%=budget_item.id%>">
                         <i class="bi bi-caret-down"></i>
                         </button>
 
@@ -97,11 +97,49 @@
             btn.addEventListener('click', async (e) => {
                 const row = e.target.closest('tr');
                 const id = btn.getAttribute('dbid');
-                const res = await fetch(`/moveup-budgetitem/${id}`, { method: 'POST' });
+                const payload = {
+                    id: id,
+                    table: 'budgetitems'
+                }
+                const res = await fetch(`/moveup`, { 
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
                 if (res.ok) {
                     const prevRow = row.previousElementSibling; // find the one above
                     if (prevRow) {
                         row.parentNode.insertBefore(row, prevRow); // insert this row before the one above
+                    }
+                } else {
+                    alert('Error moving row');
+                }
+            });
+        });
+    });
+
+    // Event listener for Move Down buttons
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.movedown-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const row = e.target.closest('tr');
+                const payload = {
+                    id: btn.getAttribute('dbid'),
+                    table: 'budgetitems'
+                }
+                const res = await fetch(`/movedown`, { 
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        row.parentNode.insertBefore(nextRow, row);
                     }
                 } else {
                     alert('Error moving row');

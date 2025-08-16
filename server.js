@@ -4,7 +4,8 @@ import { get_accounts,
          get_available_years, 
          load_preferences, 
          save_preferences, 
-         pool 
+         pool,
+         shift_db_item_up, shift_db_item_down,
        } from './src/db.js';
 import { get_property_list, lookup_by_id, lookup_id_by } from './src/misc.js';
 import bodyParser from 'body-parser';
@@ -19,6 +20,9 @@ app.set('view engine', 'ejs');
 // is submitting a form. (The extended option is 
 // required)
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// tells Express to parse JSON request bodies
+app.use(express.json());
 
 // Route: fetch users and render template
 app.get('/', async (req, res) => {
@@ -126,57 +130,31 @@ function print_rows(rows) {
     console.log(objlist);
 }
 
-// MoveUp (budgetitem) request handler
-app.post('/moveup-budgetitem/:id', async (req, res) => {
-    const { id } = req.params;
-    let conn;
+// MoveUp request handler
+app.post('/moveup', async (req, res) => {
+    const payload = req.body;
+    const id = payload.id;
+    const table = payload.table;
     try {
-        conn = await pool.getConnection();
-        // load user preferences
-        let user = 'davidflenner';
-        let prefs = await load_preferences(user);
-        // get all budgetitems for current account, month, year
-        let rows = await conn.query("SELECT * FROM budgetitems WHERE account = ? AND month = ? AND year = ? ORDER BY orderbyte", 
-            [prefs.current_account, prefs.current_month, prefs.current_year]);
-        // reduce the orderbyte by 1 if possible
-        let moverow = rows.find(row => row.id == id);
-        let neworderbyte = moverow.orderbyte - 1;
-        // for all items with orderbyte < moved item => leave alone
-        let min_orderbyte = Math.min(...rows.map(row => row.orderbyte).filter(x => x >= 0));
-        let max_orderbyte = Math.max(...rows.map(row => row.orderbyte).filter(x => x >= 0));
-        
-        // for all items with orderbyte > moved item => increase by one
-        if (moverow.orderbyte > min_orderbyte) {
-            rows.filter(row => row.orderbyte >= neworderbyte).forEach(row => row.orderbyte += 1);
-            moverow.orderbyte = neworderbyte;
-        }
-        // re-sort all the rows by the orderbyte
-        rows.sort((a, b) => a.orderbyte - b.orderbyte);
-
-        // make sure all orderbytes are well-behaved
-        let counter = 0;
-        for (let i = 0; i < rows.length; i++) {
-            let row = rows[i];
-            if (row.orderbyte >= 0) {  i;
-                row.orderbyte = counter;
-                counter++;
-            }
-        }
-        const sql = `
-            UPDATE budgetitems
-            SET orderbyte = 
-                CASE id
-                    ${rows.map(u => `WHEN ${u.id} THEN ${u.orderbyte}`).join(' ')}
-                END
-            WHERE id IN (${rows.map(u => u.id).join(', ')})
-        `;
-        await conn.query(sql);
+        await shift_db_item_up(table, id, 'davidflenner');
         res.sendStatus(200);
     } catch (err) {
-        console.error(err);
+        console.log(err);
         res.sendStatus(500);
-    } finally {
-        if (conn) conn.release();
+    }
+});
+
+// MoveDown request handler
+app.post('/movedown', async (req, res) => {
+    const payload = req.body;
+    const id = payload.id;
+    const table = payload.table;
+    try {
+        await shift_db_item_down(table, id, 'davidflenner');
+        res.sendStatus(200);
+    } catch (err) {
+        console.log(err);
+        res.sendStatus(500);
     }
 });
 
