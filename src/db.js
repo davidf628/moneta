@@ -234,3 +234,82 @@ export async function shift_db_item_down(table, id, user) {
         if (conn) conn.release();
     }
 };
+
+export async function insert_row_below(table, id, user) {
+    let conn;
+
+    const allowedTables = ['budgetitems', 'transactions'];
+    if (!allowedTables.includes(table)) {
+        throw new Error(`Table: ${table} is not a valid table name`);
+    }
+
+    try {
+        conn = await pool.getConnection();
+
+        // pull the budgetitems for the current account, month, and year
+        let prefs = await load_preferences(user);
+        let sql = `SELECT * FROM ${table} WHERE account = ? AND month = ? AND year = ? ORDER BY orderbyte`;
+        let rows = await conn.query(sql, [prefs.current_account, prefs.current_month, prefs.current_year]);
+        
+        // ignore all the the hidden items:
+        rows = rows.filter(row => row.orderbyte >= 0);
+
+        // find the pivot row
+        let moverow = rows.find(row => row.id == id);
+        let moverowindex = rows.findIndex(row => row.id == id);
+
+        // create a new item and insert it
+        let new_budgetitem = {
+            name : '',
+            amount : 0.00,
+            orderbyte : rows[moverowindex].orderbyte,
+            increment : 0.00,
+            account : prefs.current_account,
+            year : prefs.current_year,
+            month : prefs.current_month
+        }
+        const result = await conn.query(
+            'INSERT INTO budgetitems ' +
+                '(name, amount, orderbyte, increment, account, year, month)' + 
+                'VALUES (?, ?, ?, ?, ?, ?, ?)', Object.values(new_budgetitem));
+
+        // retrieve the id of the newly inserted item
+        new_budgetitem['id'] = result.insertId;
+
+        // increment all the remaining orderbytes
+        for(let i = moverowindex+1; i < rows.length; i++) {
+            rows[i].orderbyte += 1;
+        }
+
+        rows.splice(moverowindex, 0, new_budgetitem);
+    
+        // re-sort all the rows by the orderbyte
+        rows.sort((a, b) => a.orderbyte - b.orderbyte);
+
+        // make sure there are no orderbyte gaps and starting value is 0
+        let counter = 0;
+        for (let i = 0; i < rows.length; i++) {
+            let row = rows[i];
+            if (row.orderbyte >= 0) {  i;
+                row.orderbyte = counter;
+                counter++;
+            }
+        }
+
+        sql = `
+            UPDATE ${table}
+            SET orderbyte = 
+                CASE id
+                    ${rows.map(u => `WHEN ${u.id} THEN ${u.orderbyte}`).join(' ')}
+                END
+            WHERE id IN (${rows.map(u => u.id).join(', ')})
+        `;
+
+        await conn.query(sql);
+
+    } catch (err) {
+        console.error(err);
+    } finally {
+        if (conn) conn.release();
+    }
+};

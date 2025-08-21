@@ -27,29 +27,28 @@
                 <td style="text-align: right"><%= budget_item.amount.toLocaleString('us-US', { style: 'currency', currency: 'USD' }) %></td>
                 <td style="text-align: center">
    
-            
-                        <!-- Move Up -->
-                        <button class="btn btn-sm btn-outline-secondary moveup-btn" title="Move up" dbid="<%=budget_item.id%>">
-                        <i class="bi bi-caret-up"></i>
-                        </button>
+                    <!-- Move Up -->
+                    <button class="btn btn-sm btn-outline-secondary moveup-btn" title="Move up" dbid="<%=budget_item.id%>">
+                    <i class="bi bi-caret-up"></i>
+                    </button>
 
-                        <!-- Move Down -->
-                        <button class="btn btn-sm btn-outline-secondary movedown-btn" title="Move down" dbid="<%=budget_item.id%>">
-                        <i class="bi bi-caret-down"></i>
-                        </button>
+                    <!-- Move Down -->
+                    <button class="btn btn-sm btn-outline-secondary movedown-btn" title="Move down" dbid="<%=budget_item.id%>">
+                    <i class="bi bi-caret-down"></i>
+                    </button>
 
-                        <!-- Add Above -->
-                        <button class="btn btn-sm btn-outline-primary" title="Insert above">
-                            <i class="bi bi-chevron-double-up"></i>
-                        </button>
+                    <!-- Add Above -->
+                    <button class="btn btn-sm btn-outline-primary" title="Insert above">
+                        <i class="bi bi-chevron-double-up"></i>
+                    </button>
 
-                        <!-- Add Below -->
-                        <button class="btn btn-sm btn-outline-primary" title="Insert below">
-                            <i class="bi bi-chevron-double-down"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger delete-btn" title="Delete" dbid="<%=budget_item.id%>">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
+                    <!-- Add Below -->
+                    <button class="btn btn-sm btn-outline-primary insert-below-btn" title="Insert below" dbid="<%=budget_item.id%>">
+                        <i class="bi bi-chevron-double-down"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger delete-btn" title="Delete" dbid="<%=budget_item.id%>">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
 
                 </td>
             <% } else { %>
@@ -71,6 +70,19 @@
 </div>
 
 <script>
+
+    function insertRowAfter(row) {
+        const table = row.closest("table"); // get parent table
+        const newRow = table.insertRow(row.rowIndex + 1);
+
+        // Copy structure (number of cells)
+        for (let i = 0; i < row.cells.length; i++) {
+            const newCell = newRow.insertCell(i);
+            newCell.textContent = ''; 
+        }
+
+        return newRow;
+    }
 
     // Event listener for delete buttons
     document.addEventListener('DOMContentLoaded', () => {
@@ -147,6 +159,32 @@
             });
         });
     });
+
+    // Event listener for Insert Below buttons
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.insert-below-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const row = e.target.closest('tr');
+                const payload = {
+                    id: btn.getAttribute('dbid'),
+                    table: 'budgetitems'
+                }
+                const res = await fetch(`/insertbelow`, { 
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    insertRowAfter(row);
+                } else {
+                    alert('Error inserting row');
+                }
+            });
+        });
+    });
+
 </script>
 
 <%- include('footer') %>

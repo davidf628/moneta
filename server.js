@@ -6,6 +6,7 @@ import { get_accounts,
          save_preferences, 
          pool,
          shift_db_item_up, shift_db_item_down,
+         insert_row_below,
        } from './src/db.js';
 import { get_property_list, lookup_by_id, lookup_id_by } from './src/misc.js';
 import bodyParser from 'body-parser';
@@ -151,6 +152,20 @@ app.post('/movedown', async (req, res) => {
     const table = payload.table;
     try {
         await shift_db_item_down(table, id, 'davidflenner');
+        res.sendStatus(200);
+    } catch (err) {
+        console.log(err);
+        res.sendStatus(500);
+    }
+});
+
+// MoveDown request handler
+app.post('/insertbelow', async (req, res) => {
+    const payload = req.body;
+    const id = payload.id;
+    const table = payload.table;
+    try {
+        await insert_row_below(table, id, 'davidflenner');
         res.sendStatus(200);
     } catch (err) {
         console.log(err);
