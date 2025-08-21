@@ -262,12 +262,13 @@ export async function insert_row_below(table, id, user) {
         let new_budgetitem = {
             name : '',
             amount : 0.00,
-            orderbyte : rows[moverowindex].orderbyte,
+            orderbyte : moverow.orderbyte + 1,
             increment : 0.00,
             account : prefs.current_account,
             year : prefs.current_year,
             month : prefs.current_month
         }
+        
         const result = await conn.query(
             'INSERT INTO budgetitems ' +
                 '(name, amount, orderbyte, increment, account, year, month)' + 
@@ -305,7 +306,9 @@ export async function insert_row_below(table, id, user) {
             WHERE id IN (${rows.map(u => u.id).join(', ')})
         `;
 
-        await conn.query(sql);
+        (async () => {
+            await conn.query(sql);
+        })();        
 
     } catch (err) {
         console.error(err);

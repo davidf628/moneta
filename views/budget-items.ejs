@@ -20,11 +20,11 @@
       <% budget_items.forEach(budget_item => { %>
         <% if (budget_item.orderbyte != -1) { %>
             <tr>
-            <% if (budget_item.name != "") { %>
-                <% let name = `cb_budgetitem_${budget_item.orderbyte}` %>
+
+                <% let name = `cb_budgetitem_${budget_item.id}` %>
                 <td><input type="checkbox" name="<%= name %>"></td>
                 <td><%= budget_item.name %></td>
-                <td style="text-align: right"><%= budget_item.amount.toLocaleString('us-US', { style: 'currency', currency: 'USD' }) %></td>
+                <td style="text-align: right"><%= budget_item.name == "" ? "" : budget_item.amount.toLocaleString('us-US', { style: 'currency', currency: 'USD' }) %></td>
                 <td style="text-align: center">
    
                     <!-- Move Up -->
@@ -51,12 +51,7 @@
                     </button>
 
                 </td>
-            <% } else { %>
-                <td><p type="hidden"></p></td>
-                <td><%= budget_item.name %></td>
-                <td><p type="hidden"></p></td>
-                <td><p type="hidden"></p></td>
-            <% } %>
+
             </tr>
         <% } %>
         <% }) %>
@@ -177,7 +172,8 @@
                     body: JSON.stringify(payload)
                 });
                 if (res.ok) {
-                    insertRowAfter(row);
+                    window.location.reload();//fetch("/");
+                    //insertRowAfter(row);
                 } else {
                     alert('Error inserting row');
                 }
