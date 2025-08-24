@@ -4,6 +4,8 @@
 
   <h1>Budget Items</h1>
 
+  <div id="budget-table"></div>
+
   <% if (budget_items.length === 0) { %>
     <p>No budget items found.</p>
   <% } else { %>
@@ -65,6 +67,56 @@
 </div>
 
 <script>
+  let budgetItems = '<%- JSON.stringify(budget_items) %>';
+  budgetItems = JSON.parse(budgetItems);
+  budgetItems = budgetItems.filter(x => x.orderbyte >= 0);
+  
+
+  // Create Tabulator
+  const table = new Tabulator("#budget-table", {
+    data: budgetItems,
+    layout: "fitColumns",
+    editTriggerEvent: "dblclick",
+    selectableRows: true,
+    selectableRowsRangeMode: "click",
+    rowClick:function(e, row){
+        row.toggleSelect(); //toggle row selected state on row click
+    },
+    columns: [
+      { title: "Budget", field: "name", editor: "input" }, // editable
+      { title: "Amount ($)", field: "amount", editor: "number", hozAlign: "right",
+            formatter: "money", formatterParams:{
+                decimal: ".",
+                thousand: ",",
+                symbol: "$ ",
+                symbolAfter: "",
+                negativeSign: true,
+                precision: 2,
+            } 
+      }, // editable
+      {
+        title: "Actions",
+        formatter: "buttonCross",
+        width: 100,
+        hozAlign: "center",
+        cellClick: async function (e, cell) {
+          
+            if (confirm('Are you sure you want to delete this row?')) {
+                console.log(cell.getRow().data.id);
+                const res = await deleteRow();
+                if (res.ok) {
+                    table.deleteRow(cell.getRow()); // Remove row from DOM
+                } else {
+                    alert('Error deleting row');                    
+                }
+            }
+        },
+      },
+    ],
+  });
+</script>
+
+<script>
 
     function insertRowAfter(row) {
         const table = row.closest("table"); // get parent table
@@ -77,6 +129,10 @@
         }
 
         return newRow;
+    }
+
+    async function deleteRow() {
+        return await fetch(`/delete/${id}`, { method: 'DELETE' });
     }
 
     // Event listener for delete buttons
